@@ -81,10 +81,12 @@
                 
                 <!-- Map Layer Switcher Toolbar -->
                 <div class="hidden sm:flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-[10px]">
-                    <button type="button" onclick="switchMapLayer('voyager')" id="btn-layer-voyager" class="px-2 py-0.5 rounded-md bg-white text-blue-700 shadow-xs font-bold">🗺️ Streets</button>
-                    <button type="button" onclick="switchMapLayer('streets')" id="btn-layer-streets" class="px-2 py-0.5 rounded-md text-slate-600 hover:text-slate-900 font-medium">🏙️ Esri</button>
-                    <button type="button" onclick="switchMapLayer('satellite')" id="btn-layer-satellite" class="px-2 py-0.5 rounded-md text-slate-600 hover:text-slate-900 font-medium">🛰️ Satellite</button>
-                    <button type="button" onclick="switchMapLayer('dark')" id="btn-layer-dark" class="px-2 py-0.5 rounded-md text-slate-600 hover:text-slate-900 font-medium">🌙 Dark</button>
+                    <button type="button" onclick="switchMapLayer('streets')" id="btn-layer-streets" class="px-2 py-0.5 rounded-md bg-white text-blue-700 shadow-xs font-bold" title="High-Speed Akamai CDN (Zero API Key)">🏙️ Esri Streets</button>
+                    <button type="button" onclick="switchMapLayer('voyager')" id="btn-layer-voyager" class="px-2 py-0.5 rounded-md text-slate-600 hover:text-slate-900 font-medium" title="Clean Vector Map (Cloudflare CDN)">🗺️ Carto</button>
+                    <button type="button" onclick="switchMapLayer('hot')" id="btn-layer-hot" class="px-2 py-0.5 rounded-md text-slate-600 hover:text-slate-900 font-medium" title="Humanitarian OpenStreetMap Public Tiles">🌍 OSM</button>
+                    <button type="button" onclick="switchMapLayer('satellite')" id="btn-layer-satellite" class="px-2 py-0.5 rounded-md text-slate-600 hover:text-slate-900 font-medium" title="Satellite Imagery">🛰️ Satellite</button>
+                    <button type="button" onclick="switchMapLayer('dark')" id="btn-layer-dark" class="px-2 py-0.5 rounded-md text-slate-600 hover:text-slate-900 font-medium" title="Dark Mode Theme">🌙 Dark</button>
+                    <button type="button" onclick="openMapApiKeyModal()" id="btn-layer-custom" class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 hover:bg-amber-100 font-bold border border-amber-200" title="Optional: Enter Free Mapbox or Stadia API Key">🔑 Free API Key</button>
                 </div>
             </div>
             
@@ -96,7 +98,7 @@
                 <span>Coordinates: <b id="map-live-coords" class="font-mono-code text-blue-600">23.8103°N, 90.4125°E</b></span>
             </div>
         </div>
-        <div id="main-map" class="w-full flex-1 min-h-[440px] rounded-xl border border-slate-200 overflow-hidden z-10"></div>
+        <div id="main-map" class="w-full flex-1 rounded-xl border border-slate-200 overflow-hidden z-10 shadow-inner" style="height: 520px; min-height: 500px; width: 100%;"></div>
     </section>
 
     <!-- Community Reports Feed (Right Column) -->
@@ -309,7 +311,7 @@
                         🎯 Use My Current GPS
                     </button>
                 </div>
-                <div id="modal-map" class="h-40 w-full rounded-xl border border-slate-200 overflow-hidden"></div>
+                <div id="modal-map" class="w-full rounded-xl border border-slate-200 overflow-hidden" style="height: 190px; min-height: 190px; width: 100%;"></div>
                 {{ form.latitude }}
                 {{ form.longitude }}
             </div>

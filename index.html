@@ -13,17 +13,19 @@
 </head>
 <body>
 
-    <!-- Protocol Warning Banner if opened directly as file:/// -->
-    <div id="file-protocol-warning" style="display:none; background:#fee2e2; border-bottom:2px solid #ef4444; color:#991b1b; padding:12px 20px; font-family:sans-serif; font-size:13px; text-align:center; font-weight:bold;">
-        ⚠️ You opened this page directly as a local file (file:///). Web APIs and live maps require the Django server! 
-        <a href="http://127.0.0.1:8000/" style="color:#1d4ed8; text-decoration:underline; margin-left:8px; font-weight:800;">👉 Click here to open http://127.0.0.1:8000/</a>
+    <!-- Protocol / Port Warning Banner if opened directly as file:/// or on LiveServer -->
+    <div id="file-protocol-warning" style="display:none; background:#eff6ff; border-bottom:2px solid #3b82f6; color:#1e40af; padding:12px 20px; font-family:sans-serif; font-size:13px; text-align:center; font-weight:bold;">
+        ℹ️ Full-Stack Mode: The Django server & database run at <a href="http://127.0.0.1:8000/" style="color:#2563eb; text-decoration:underline; font-weight:800;">http://127.0.0.1:8000/</a>. 
+        <a href="http://127.0.0.1:8000/" style="background:#2563eb; color:white; padding:4px 12px; border-radius:6px; text-decoration:none; margin-left:10px; font-weight:700;">👉 Open Django Web App</a>
     </div>
     <script>
-        if (window.location.protocol === 'file:') {
+        if (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '8000')) {
             document.getElementById('file-protocol-warning').style.display = 'block';
-            setTimeout(function() {
-                window.location.href = 'http://127.0.0.1:8000/';
-            }, 1500);
+            if (window.location.protocol === 'file:') {
+                setTimeout(function() {
+                    window.location.href = 'http://127.0.0.1:8000/';
+                }, 1500);
+            }
         }
     </script>
 
@@ -101,7 +103,7 @@
             
             <!-- Map Container -->
             <section class="map-card-neo">
-                <div id="main-map" class="map-container"></div>
+                <div id="main-map" class="map-container" style="height: 520px; min-height: 500px; width: 100%;"></div>
             </section>
 
             <!-- Issue Feed Column -->
@@ -192,7 +194,7 @@
                     <!-- Location Selector (Mini Map) -->
                     <div class="form-group">
                         <label class="form-label">Location Pin (Click map to adjust pin)</label>
-                        <div id="modal-map"></div>
+                        <div id="modal-map" style="height: 200px; min-height: 200px; width: 100%; border-radius: 12px; overflow: hidden;"></div>
                         <input type="hidden" id="form-lat">
                         <input type="hidden" id="form-lng">
                     </div>

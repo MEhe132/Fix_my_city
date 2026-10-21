@@ -2,10 +2,33 @@
    Fix My City - Minimalist UI Custom Extensions (Tailwind CSS Companion)
    ========================================================================== */
 
+/* Leaflet Map Guaranteed Heights & Dimensions */
+#main-map, .map-container {
+    height: 520px !important;
+    min-height: 500px !important;
+    width: 100% !important;
+    display: block !important;
+    position: relative !important;
+    border-radius: 14px;
+    z-index: 1;
+}
+
+#modal-map {
+    height: 200px !important;
+    min-height: 200px !important;
+    width: 100% !important;
+    display: block !important;
+    position: relative !important;
+    border-radius: 12px;
+    z-index: 1;
+}
+
 /* Leaflet Map Custom Styling for Minimal UI */
 .leaflet-container {
     font-family: inherit !important;
-    background-color: transparent !important;
+    background-color: #f1f5f9 !important;
+    width: 100% !important;
+    height: 100% !important;
 }
 
 .leaflet-popup-content-wrapper, .leaflet-popup-tip {
