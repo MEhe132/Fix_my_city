@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Municipal Authority Triage Dashboard — Fix My City BD{% endblock %}
+
+{% block content %}
+<!-- Authority Welcome Header -->
+<section class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-3xl p-6 shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+    <div>
+        <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-500/20 text-purple-300 border border-purple-400/30 uppercase tracking-wider">
+                Official Municipal Portal
+            </span>
+            <span class="text-xs text-slate-400">• DNCC / DSCC Triage Desk</span>
+        </div>
+        <h1 class="text-2xl font-black tracking-tight mt-1">Municipal Authority & Ward Console</h1>
+        <p class="text-xs text-slate-300 max-w-2xl mt-1 leading-relaxed">
+            Manage infrastructure work orders, inspect AI-verified community complaints, 
+            dispatch engineering crews, and upload verifiable photographic proof of resolution.
+        </p>
+    </div>
+
+    <!-- Official User Badge -->
+    <div class="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-purple-600 flex items-center justify-center font-bold text-base">
+            🛡️
+        </div>
+        <div class="text-left">
+            <div class="text-xs font-bold text-white">{{ user.username|default:"Ward 19 Official" }}</div>
+            <div class="text-[11px] text-purple-200">{{ user.designation|default:"Assistant Executive Engineer, Zone-3" }}</div>
+            <div class="text-[10px] text-slate-300 font-mono-code">{{ user.assigned_ward.ward_number|default:"Ward 19 (DNCC)" }}</div>
+        </div>
+    </div>
+</section>
+
+<!-- Triage Filters & Search -->
+<section class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-wrap justify-between items-center gap-3">
+    <div class="flex items-center gap-3 flex-wrap">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Filter Queue:</span>
+        
+        <!-- Status Filter Pills -->
+        <a href="?status=all{% if selected_ward != 'all' %}&ward={{ selected_ward }}{% endif %}" class="px-3 py-1.5 rounded-xl text-xs font-bold transition border {% if selected_status == 'all' %}bg-slate-900 text-white border-slate-900{% else %}bg-slate-100 text-slate-600 border-slate-200 hover:border-slate-400{% endif %}">
+            All Statuses
+        </a>
+        <a href="?status=Pending Verification{% if selected_ward != 'all' %}&ward={{ selected_ward }}{% endif %}" class="px-3 py-1.5 rounded-xl text-xs font-bold transition border {% if selected_status == 'Pending Verification' %}bg-amber-600 text-white border-amber-600{% else %}bg-amber-50 text-amber-700 border-amber-200 hover:border-amber-400{% endif %}">
+            ⚠️ Pending Verification
+        </a>
+        <a href="?status=In Progress{% if selected_ward != 'all' %}&ward={{ selected_ward }}{% endif %}" class="px-3 py-1.5 rounded-xl text-xs font-bold transition border {% if selected_status == 'In Progress' %}bg-blue-600 text-white border-blue-600{% else %}bg-blue-50 text-blue-700 border-blue-200 hover:border-blue-400{% endif %}">
+            🔨 In Progress
+        </a>
+        <a href="?status=Resolved{% if selected_ward != 'all' %}&ward={{ selected_ward }}{% endif %}" class="px-3 py-1.5 rounded-xl text-xs font-bold transition border {% if selected_status == 'Resolved' %}bg-emerald-600 text-white border-emerald-600{% else %}bg-emerald-50 text-emerald-700 border-emerald-200 hover:border-emerald-400{% endif %}">
+            ✓ Resolved
+        </a>
+    </div>
+
+    <!-- Ward Filter Dropdown -->
+    <form method="GET" class="flex items-center gap-2">
+        {% if selected_status != 'all' %}<input type="hidden" name="status" value="{{ selected_status }}">{% endif %}
+        <select name="ward" class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none cursor-pointer" onchange="this.form.submit()">
+            <option value="all" {% if selected_ward == 'all' %}selected{% endif %}>All Wards</option>
+            {% for w in wards %}
+                <option value="{{ w.id }}" {% if selected_ward == w.id|stringformat:"s" %}selected{% endif %}>{{ w.ward_number }} - {{ w.name }}</option>
+            {% endfor %}
+        </select>
+    </form>
+</section>
+
+<!-- Authority Work Order Table -->
+<section class="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-sm overflow-hidden space-y-4">
+    <div class="flex justify-between items-center pb-2">
+        <h2 class="text-sm font-extrabold text-slate-900">
+            Active Civic Complaints & Triage Queue ({{ issues.count }} Items)
+        </h2>
+        <span class="text-xs text-slate-400 font-semibold">Real-Time Municipal Action Log</span>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+            <thead>
+                <tr class="border-b border-slate-200 bg-slate-50 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+                    <th class="py-3 px-3">ID</th>
+                    <th class="py-3 px-3">Issue Title & Hazard</th>
+                    <th class="py-3 px-3">Ward</th>
+                    <th class="py-3 px-3">Category / Priority</th>
+                    <th class="py-3 px-3">AI / Hardware Check</th>
+                    <th class="py-3 px-3">Upvotes</th>
+                    <th class="py-3 px-3">Current Status</th>
+                    <th class="py-3 px-3 text-right">Triage Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for issue in issues %}
+                <tr class="hover:bg-slate-50/70 transition">
+                    <td class="py-3 px-3 font-mono-code font-bold text-slate-600">
+                        #{{ issue.id }}
+                    </td>
+                    <td class="py-3 px-3 max-w-xs">
+                        <div class="font-extrabold text-slate-900 leading-snug">{{ issue.title }}</div>
+                        <div class="text-[11px] text-slate-400 truncate">{{ issue.address|default:issue.description }}</div>
+                    </td>
+                    <td class="py-3 px-3">
+                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-800">
+                            {{ issue.ward.ward_number|default:"Unassigned" }}
+                        </span>
+                    </td>
+                    <td class="py-3 px-3">
+                        <div class="font-bold text-slate-800">{{ issue.category }}</div>
+                        <span class="text-[10px] font-extrabold {% if issue.severity == 'Critical' %}text-rose-600{% elif issue.severity == 'High' %}text-amber-600{% else %}text-slate-500{% endif %}">
+                            {{ issue.severity }}
+                        </span>
+                    </td>
+                    <td class="py-3 px-3">
+                        {% if 'Auto-Verified' in issue.verification_status %}
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                ✓ Camera EXIF
+                            </span>
+                        {% elif 'AI-Verified' in issue.verification_status %}
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">
+                                ✓ AI Optical
+                            </span>
+                        {% else %}
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200">
+                                ⚠️ {{ issue.verification_status }}
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-3">
+                        <span class="font-bold text-xs {% if issue.upvotes_count >= 10 %}text-blue-600 font-extrabold{% else %}text-slate-600{% endif %}">
+                            🔥 {{ issue.upvotes_count }}
+                        </span>
+                    </td>
+                    <td class="py-3 px-3">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider {% if issue.status == 'Resolved' %}bg-emerald-100 text-emerald-800{% elif issue.status == 'In Progress' %}bg-amber-100 text-amber-800{% elif issue.status == 'Under Review' %}bg-blue-100 text-blue-800{% else %}bg-slate-100 text-slate-700{% endif %}">
+                            {{ issue.status }}
+                        </span>
+                    </td>
+                    <td class="py-3 px-3 text-right">
+                        <button onclick="openTriageModal('{{ issue.id }}', '{{ issue.title|escapejs }}', '{{ issue.status }}', '{{ issue.ward.ward_number }}')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition cursor-pointer shadow-sm">
+                            Triage / Resolve
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-10 text-slate-400 font-semibold">
+                        No civic issues found for the selected filter.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- Official Triage Modal (Status Transition + Resolution Proof Photo Upload) -->
+<div id="triage-modal" class="modal-overlay fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50 hidden">
+    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-lg p-6 shadow-2xl relative space-y-4">
+        
+        <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+            <div>
+                <h2 class="text-base font-extrabold text-slate-900">Municipal Triage & Resolution Action</h2>
+                <p id="triage-modal-subtitle" class="text-[11px] text-slate-500">Updating Issue Status</p>
+            </div>
+            <button onclick="closeTriageModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:text-red-500 flex items-center justify-center transition cursor-pointer text-lg">&times;</button>
+        </div>
+
+        <form id="triage-form" method="POST" action="" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'authority_dashboard' %}">
+
+            <!-- Target Status -->
+            <div class="space-y-1">
+                <label class="text-xs font-bold text-slate-700">Update Lifecycle Status *</label>
+                <select name="status" id="triage-status-select" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 focus:outline-none focus:border-purple-600">
+                    <option value="Under Review">🔍 Under Review (Inspection Scheduled)</option>
+                    <option value="In Progress">🔨 In Progress (Contractor Work Order Dispatched)</option>
+                    <option value="Resolved">✅ Resolved (Repairs Finished + Verified)</option>
+                    <option value="Rejected">❌ Rejected (Out of Jurisdiction / Invalid)</option>
+                </select>
+            </div>
+
+            <!-- Responsible Department -->
+            <div class="space-y-1">
+                <label class="text-xs font-bold text-slate-700">Assign Operational Department</label>
+                <select name="department" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-medium text-slate-800 focus:outline-none focus:border-purple-600">
+                    {% for d in departments %}
+                        <option value="{{ d.id }}">{{ d.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Official Resolution Proof Photo Upload -->
+            <div class="space-y-1">
+                <label class="text-xs font-bold text-slate-700">Upload Resolution Proof Photograph (Required when marking Resolved)</label>
+                <input type="file" name="resolution_proof_photo" accept="image/*" class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer">
+                <p class="text-[10px] text-slate-400">Photographic proof of completed asphalt, replaced light, or cleared dump.</p>
+            </div>
+
+            <!-- Official Remarks -->
+            <div class="space-y-1">
+                <label class="text-xs font-bold text-slate-700">Official Action Notes & Resolution Remarks</label>
+                <textarea name="resolution_notes" rows="3" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-medium text-slate-800 focus:outline-none focus:border-purple-600" placeholder="e.g. Asphalt compaction completed by DNCC Road Division. 15 tons bitumen applied..."></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="pt-2">
+                <button type="submit" class="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs rounded-xl shadow-lg transition cursor-pointer">
+                    Commit Status Update to Official Audit Log
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+function openTriageModal(issueId, title, currentStatus, wardNum) {
+    const modal = document.getElementById('triage-modal');
+    const form = document.getElementById('triage-form');
+    const subtitle = document.getElementById('triage-modal-subtitle');
+    const statusSelect = document.getElementById('triage-status-select');
+
+    form.action = `/issues/${issueId}/update-status/`;
+    subtitle.textContent = `Issue #${issueId} (${wardNum}): ${title}`;
+    if (statusSelect) {
+        statusSelect.value = currentStatus;
+    }
+    modal.classList.remove('hidden');
+}
+
+function closeTriageModal() {
+    document.getElementById('triage-modal').classList.add('hidden');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Issue #{{ issue.id }}: {{ issue.title }} — Fix My City BD{% endblock %}
+
+{% block content %}
+<!-- Issue Detail Container -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Left Column: Photographic Evidence & Metadata (7 Cols) -->
+    <section class="lg:col-span-7 flex flex-col gap-5">
+        
+        <!-- Header Card -->
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+            <div class="flex flex-wrap justify-between items-center gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="px-3 py-1 rounded-xl text-xs font-black bg-blue-50 text-blue-700 border border-blue-200">
+                        {{ issue.ward.ward_number|default:"Ward Unassigned" }}
+                    </span>
+                    <span class="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-xl">
+                        {{ issue.category }}
+                    </span>
+                    <span class="text-xs font-extrabold {% if issue.severity == 'Critical' %}text-rose-600 bg-rose-50 border border-rose-200{% else %}text-amber-700 bg-amber-50 border border-amber-200{% endif %} px-2.5 py-1 rounded-xl">
+                        {{ issue.severity }} Priority
+                    </span>
+                </div>
+                
+                <span class="px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider {% if issue.status == 'Resolved' %}bg-emerald-100 text-emerald-800 border border-emerald-300{% elif issue.status == 'In Progress' %}bg-amber-100 text-amber-800 border border-amber-300{% else %}bg-blue-100 text-blue-800 border border-blue-300{% endif %}">
+                    {{ issue.status }}
+                </span>
+            </div>
+
+            <div>
+                <h1 class="text-xl sm:text-2xl font-black text-slate-900 leading-tight">{{ issue.title }}</h1>
+                <p class="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <span>{{ issue.address|default:"Location Pinpoint" }}</span>
+                    <span>•</span>
+                    <span>Reported by: <b>{{ issue.reporter_name }}</b> on {{ issue.created_at|date:"M d, Y h:i A" }}</span>
+                </p>
+            </div>
+
+            <!-- Photos Carousel / Before & After -->
+            <div class="space-y-2">
+                <div class="text-xs font-bold text-slate-700">Photographic Evidence:</div>
+                <div class="grid grid-cols-1 {% if issue.resolution_proof_photo %}sm:grid-cols-2{% endif %} gap-3">
+                    
+                    <!-- Original Citizen Photo -->
+                    {% if issue.photo %}
+                    <div class="relative group rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+                        <img src="{{ issue.photo.url }}" class="w-full h-56 object-cover" alt="Citizen Photo Evidence">
+                        <div class="absolute bottom-2 left-2 bg-slate-900/80 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[10px] font-bold">
+                            Citizen Evidence Photo
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Municipal Resolution Proof Photo -->
+                    {% if issue.resolution_proof_photo %}
+                    <div class="relative group rounded-2xl overflow-hidden border border-emerald-300 shadow-sm">
+                        <img src="{{ issue.resolution_proof_photo.url }}" class="w-full h-56 object-cover" alt="Resolution Proof">
+                        <div class="absolute bottom-2 left-2 bg-emerald-700/90 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1">
+                            ✓ Municipal Resolution Proof
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="space-y-1 pt-1">
+                <div class="text-xs font-bold text-slate-700">Detailed Complaint Narrative:</div>
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-xs text-slate-700 leading-relaxed">
+                    {{ issue.description }}
+                </div>
+            </div>
+
+            <!-- Resolution Notes if any -->
+            {% if issue.resolution_notes %}
+            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-1 text-xs">
+                <div class="font-bold text-emerald-800 flex items-center gap-1.5">
+                    <span>✓ Municipal Resolution Summary:</span>
+                </div>
+                <div class="text-emerald-900 leading-relaxed">
+                    {{ issue.resolution_notes }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- AI / Camera Hardware Verification Card -->
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-extrabold text-slate-800">Tamper-Evident Image Verification</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold {% if 'Auto-Verified' in issue.verification_status %}bg-emerald-100 text-emerald-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                        {{ issue.verification_status }}
+                    </span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] text-slate-600">
+                    <div><b>Hardware Make:</b> {{ issue.camera_make|default:"Optical Sensor" }}</div>
+                    <div><b>Camera Model:</b> {{ issue.camera_model|default:"Smartphone Camera" }}</div>
+                    <div><b>Authenticity Score:</b> {{ issue.ai_confidence_score|floatformat:2 }} / 1.00</div>
+                    {% if issue.exif_timestamp %}
+                        <div class="col-span-2"><b>Hardware Timestamp:</b> {{ issue.exif_timestamp }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Official Status History & Audit Log -->
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+            <h2 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                <span>⏱️ Lifecycle Triage Timeline & Audit Trail</span>
+            </h2>
+
+            <div class="relative pl-6 border-l-2 border-slate-200 space-y-6">
+                {% for log in history %}
+                <div class="relative">
+                    <!-- Dot -->
+                    <div class="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-blue-600 border-2 border-white"></div>
+                    <div class="text-xs font-bold text-slate-800">
+                        {{ log.new_status }}
+                        <span class="font-normal text-slate-400 text-[10px]">by {{ log.changed_by.username|default:"System" }}</span>
+                    </div>
+                    <div class="text-[11px] text-slate-500 mt-0.5">{{ log.comment }}</div>
+                    <div class="text-[10px] text-slate-400 mt-1 font-mono-code">{{ log.timestamp|date:"M d, Y h:i A" }}</div>
+                </div>
+                {% empty %}
+                <div class="text-xs text-slate-400">Issue registered. Awaiting initial municipal review.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </section>
+
+    <!-- Right Column: Civic Actions & Map (5 Cols) -->
+    <section class="lg:col-span-5 flex flex-col gap-5">
+        
+        <!-- Action Card: Upvote, Social Campaign & PDF Petition -->
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+            <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Citizen Action Center</h3>
+            
+            <!-- Upvote Button -->
+            <div class="flex items-center justify-between p-4 rounded-2xl bg-blue-50 border border-blue-200">
+                <div>
+                    <div class="text-sm font-extrabold text-blue-900">Community Endorsement</div>
+                    <div class="text-xs text-blue-700">Crossed 10+ upvotes for municipal alert</div>
+                </div>
+                <button onclick="handleUpvote('{{ issue.id }}', this)" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center gap-1.5 cursor-pointer">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                    <span class="upvote-text">{{ issue.upvotes_count }} Upvotes</span>
+                </button>
+            </div>
+
+            <!-- 1-Click Social Campaign Trigger -->
+            <button onclick="openCampaignModal('{{ issue.id }}')" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-2xl shadow transition flex items-center justify-center gap-2 cursor-pointer">
+                <span>📢 1-Click Social Campaign (Facebook / WhatsApp)</span>
+            </button>
+
+            <!-- Automated Official PDF Petition Download -->
+            <a href="{% url 'download_petition_pdf' issue.id %}" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-2xl shadow transition flex items-center justify-center gap-2">
+                <span>📄 Download Official Municipal PDF Petition</span>
+            </a>
+            
+            <p class="text-[10px] text-center text-slate-400">
+                Formal legal petition framed under Bangladesh Local Government Act 2009 & RTI Act 2009.
+            </p>
+        </div>
+
+        <!-- Municipal Ward Jurisdiction Details -->
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-3">
+            <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Jurisdiction Authority</h3>
+            <div class="space-y-2 text-xs">
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Ward:</span>
+                    <span class="font-extrabold text-slate-900">{{ issue.ward.ward_number }} - {{ issue.ward.name }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">City Corporation:</span>
+                    <span class="font-bold text-slate-800">{{ issue.ward.city_corporation }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Ward Councillor:</span>
+                    <span class="font-bold text-slate-800">{{ issue.ward.councillor_name }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Contact Phone:</span>
+                    <span class="font-mono-code text-blue-600 font-bold">{{ issue.ward.contact_phone }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Responsible Dept:</span>
+                    <span class="font-bold text-slate-800">{{ issue.department.name|default:"Civil Engineering" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mini GIS Map -->
+        <div class="bg-white border border-slate-200 rounded-3xl p-4 shadow-sm space-y-2">
+            <div class="text-xs font-bold text-slate-700">Geographic Pinpoint (GPS)</div>
+            <div id="detail-map" class="h-48 w-full rounded-2xl border border-slate-200 overflow-hidden"></div>
+            <div class="text-[11px] text-slate-400 font-mono-code text-center">
+                Lat: {{ issue.latitude }}, Lng: {{ issue.longitude }}
+            </div>
+        </div>
+
+    </section>
+
+</div>
+
+<!-- 1-Click Social Campaign Modal -->
+<div id="campaign-modal" class="modal-overlay fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50 hidden">
+    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-lg p-6 shadow-2xl relative space-y-4">
+        
+        <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+            <div class="flex items-center gap-2">
+                <span class="text-xl">📢</span>
+                <div>
+                    <h2 class="text-base font-extrabold text-slate-900">1-Click Social Media Campaign</h2>
+                    <p class="text-[11px] text-slate-500">Mobilize community pressure on Facebook & WhatsApp</p>
+                </div>
+            </div>
+            <button onclick="closeCampaignModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:text-red-500 flex items-center justify-center transition cursor-pointer text-lg">&times;</button>
+        </div>
+
+        <div class="space-y-1.5">
+            <label class="text-xs font-bold text-slate-700 flex justify-between">
+                <span>Pre-Formatted Post with Ward Tags & Upvote Count</span>
+                <span id="copy-status" class="text-emerald-600 text-[11px] hidden">✓ Copied to clipboard!</span>
+            </label>
+            <textarea id="campaign-text-area" class="w-full h-36 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-mono-code text-slate-800 focus:outline-none" readonly></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <a id="btn-share-whatsapp" href="#" target="_blank" class="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow transition">
+                <span>💬 Share on WhatsApp</span>
+            </a>
+            <a id="btn-share-facebook" href="#" target="_blank" class="py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow transition">
+                <span>🔵 Share on Facebook</span>
+            </a>
+        </div>
+
+        <button onclick="copyCampaignText()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer border border-slate-200">
+            <span>📋 Copy Complete Campaign Copy</span>
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const lat = parseFloat("{{ issue.latitude|default:'23.8103' }}");
+    const lng = parseFloat("{{ issue.longitude|default:'90.4125' }}");
+    
+    const detailMap = L.map('detail-map').setView([lat, lng], 15);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap &copy; CARTO'
+    }).addTo(detailMap);
+
+    L.circleMarker([lat, lng], {
+        radius: 10,
+        fillColor: '#3b82f6',
+        color: '#ffffff',
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.9
+    }).addTo(detailMap).bindPopup("<b>{{ issue.title|escapejs }}</b><br>{{ issue.address|escapejs }}").openPopup();
+});
+</script>
+{% endblock %}

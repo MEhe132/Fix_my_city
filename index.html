@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix My City - Local Civic Issue Tracker</title>
+    
+    <!-- Local Offline Leaflet CSS -->
+    <link rel="stylesheet" href="static/vendor/leaflet/leaflet.css">
+    
+    <!-- Master Local Stylesheet -->
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+
+    <!-- Protocol Warning Banner if opened directly as file:/// -->
+    <div id="file-protocol-warning" style="display:none; background:#fee2e2; border-bottom:2px solid #ef4444; color:#991b1b; padding:12px 20px; font-family:sans-serif; font-size:13px; text-align:center; font-weight:bold;">
+        ⚠️ You opened this page directly as a local file (file:///). Web APIs and live maps require the Django server! 
+        <a href="http://127.0.0.1:8000/" style="color:#1d4ed8; text-decoration:underline; margin-left:8px; font-weight:800;">👉 Click here to open http://127.0.0.1:8000/</a>
+    </div>
+    <script>
+        if (window.location.protocol === 'file:') {
+            document.getElementById('file-protocol-warning').style.display = 'block';
+            setTimeout(function() {
+                window.location.href = 'http://127.0.0.1:8000/';
+            }, 1500);
+        }
+    </script>
+
+    <div class="app-container">
+        
+        <!-- Header Component -->
+        <header class="header-neo">
+            <div class="brand-section">
+                <div class="brand-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="brand-title">Fix My City</h1>
+                    <p class="brand-subtitle">Empowering citizens & simplifying municipal repairs</p>
+                </div>
+            </div>
+
+            <!-- Top Middle Dark Mode Toggle Button -->
+            <div class="top-middle-theme-toggle">
+                <button id="theme-toggle-btn" class="theme-toggle-btn-neo" aria-label="Toggle Dark Mode">
+                    <svg id="theme-icon-sun" class="theme-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                    <svg id="theme-icon-moon" class="theme-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                    <span id="theme-toggle-text">Dark Mode</span>
+                </button>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="stats-row">
+                <div class="stat-pill">
+                    <span>Total Reports:</span>
+                    <span id="stat-total" class="stat-num">0</span>
+                </div>
+                <div class="stat-pill">
+                    <span>Council Notified:</span>
+                    <span id="stat-notified" class="stat-num">0</span>
+                </div>
+                <div class="stat-pill">
+                    <span>Resolved:</span>
+                    <span id="stat-resolved" class="stat-num">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Search & Category Filters -->
+        <section class="controls-neo">
+            <div class="search-wrapper">
+                <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="m21 21-4.3-4.3"/>
+                </svg>
+                <input type="text" id="search-input" class="search-input" placeholder="Search by street, pothole, light...">
+            </div>
+
+            <div class="chips-scroll" id="category-chips">
+                <button class="chip-neo active" data-category="all">All Issues</button>
+                <button class="chip-neo" data-category="Pothole">Potholes</button>
+                <button class="chip-neo" data-category="Streetlight">Streetlights</button>
+                <button class="chip-neo" data-category="Water Leak">Water Leaks</button>
+                <button class="chip-neo" data-category="Sanitation">Sanitation</button>
+                <button class="chip-neo" data-category="Graffiti">Graffiti</button>
+                <button class="chip-neo" data-category="Other">Other</button>
+            </div>
+        </section>
+
+        <!-- Main Workspace (Map + Feed) -->
+        <main class="dashboard-grid">
+            
+            <!-- Map Container -->
+            <section class="map-card-neo">
+                <div id="main-map" class="map-container"></div>
+            </section>
+
+            <!-- Issue Feed Column -->
+            <section class="feed-column">
+                <div class="feed-header">
+                    <h2 class="feed-title">Community Reports</h2>
+                    <select id="sort-select" class="neo-select-field" style="width: auto; padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                        <option value="upvotes">🔥 Most Upvoted</option>
+                        <option value="newest">⏱️ Newest First</option>
+                        <option value="oldest">⌛ Oldest First</option>
+                    </select>
+                </div>
+
+                <div id="issue-feed" class="feed-container">
+                    <!-- Dynamic Feed -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Floating Action Button (FAB) -->
+        <button id="open-report-btn" class="fab-neo" aria-label="Report New Civic Issue" title="Report New Issue">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        </button>
+
+        <!-- Neomorphic Report Modal -->
+        <div id="report-modal" class="modal-overlay hidden">
+            <div class="modal-neo">
+                <div class="modal-header">
+                    <h2 class="modal-title">Report Civic Infrastructure</h2>
+                    <button id="close-modal-btn" class="close-btn-neo">&times;</button>
+                </div>
+
+                <form id="report-form">
+                    <div class="form-group">
+                        <label class="form-label" for="form-title">Issue Title *</label>
+                        <input type="text" id="form-title" class="neo-input-field" placeholder="e.g. Deep Pothole on Oak Ave" required>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="form-category">Category *</label>
+                            <select id="form-category" class="neo-select-field" required>
+                                <option value="Pothole">Pothole</option>
+                                <option value="Streetlight">Streetlight</option>
+                                <option value="Water Leak">Water Leak</option>
+                                <option value="Sanitation">Sanitation</option>
+                                <option value="Graffiti">Graffiti</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="form-severity">Severity</label>
+                            <select id="form-severity" class="neo-select-field">
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                                <option value="Critical">Critical</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="form-description">Description *</label>
+                        <textarea id="form-description" class="neo-textarea" rows="3" placeholder="Describe the hazard..." required></textarea>
+                    </div>
+
+                    <!-- Photo Upload Dropzone -->
+                    <div class="form-group">
+                        <label class="form-label">Upload Photo</label>
+                        <div id="photo-dropzone" class="photo-dropzone-neo">
+                            <input type="file" id="form-photo-file" accept="image/*" style="display: none;">
+                            <div class="dropzone-prompt">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                                    <circle cx="9" cy="9" r="2"/>
+                                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                                </svg>
+                                <span>Click to select photo</span>
+                            </div>
+                            <img id="photo-preview" class="photo-preview-img" style="display: none;" alt="Photo Preview">
+                        </div>
+                        <div id="exif-feedback" style="display: none;" class="exif-status-badge"></div>
+                    </div>
+
+                    <!-- Location Selector (Mini Map) -->
+                    <div class="form-group">
+                        <label class="form-label">Location Pin (Click map to adjust pin)</label>
+                        <div id="modal-map"></div>
+                        <input type="hidden" id="form-lat">
+                        <input type="hidden" id="form-lng">
+                    </div>
+
+                    <div class="form-group" style="margin-top: 1.5rem;">
+                        <button type="submit" class="btn-neo-primary">Submit Civic Report</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Local Offline Libraries (Zero Network Dependencies) -->
+    <script src="static/vendor/leaflet/leaflet.js"></script>
+    <script src="static/vendor/exif/exif.min.js"></script>
+    <script src="static/js/main.js"></script>
+</body>
+</html>

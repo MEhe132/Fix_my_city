@@ -1,0 +1,52 @@
+/* ==========================================================================
+   Fix My City - Minimalist UI Custom Extensions (Tailwind CSS Companion)
+   ========================================================================== */
+
+/* Leaflet Map Custom Styling for Minimal UI */
+.leaflet-container {
+    font-family: inherit !important;
+    background-color: transparent !important;
+}
+
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+    border-radius: 12px !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.dark .leaflet-popup-content-wrapper, .dark .leaflet-popup-tip {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+    border-color: #334155 !important;
+}
+
+/* Custom Minimal Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: #334155;
+}
+
+/* Modal Transition */
+.modal-overlay {
+    transition: opacity 0.2s ease-in-out;
+}
+
+.modal-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
