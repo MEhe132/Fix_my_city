@@ -41,37 +41,103 @@ function getCSRFToken() {
 }
 
 /* ==========================================================================
-   1. Theme Manager (Dark / Light)
+   1. Theme Manager (Dark / Light / System) & Settings Modal
    ========================================================================== */
-function initThemeManager() {
-    const themeBtn = document.getElementById('theme-toggle-btn');
+window.setAppTheme = function(mode) {
+    let effectiveTheme = mode;
+    if (mode === 'system') {
+        effectiveTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    }
+    
+    document.documentElement.setAttribute('data-theme', effectiveTheme);
+    if (effectiveTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+
+    localStorage.setItem('fmc_bd_theme_preference', mode);
+    localStorage.setItem('fmc_bd_theme', effectiveTheme);
+
+    // Update nav icons
     const sunIcon = document.getElementById('theme-icon-sun');
     const moonIcon = document.getElementById('theme-icon-moon');
+    if (effectiveTheme === 'dark') {
+        if (sunIcon) sunIcon.style.display = 'none';
+        if (moonIcon) moonIcon.style.display = 'inline-block';
+    } else {
+        if (sunIcon) sunIcon.style.display = 'inline-block';
+        if (moonIcon) moonIcon.style.display = 'none';
+    }
 
-    const savedTheme = localStorage.getItem('fmc_bd_theme') || 'light';
-    applyTheme(savedTheme);
+    // Update Settings Modal Buttons UI
+    ['light', 'dark', 'system'].forEach(t => {
+        const btn = document.getElementById(`theme-btn-${t}`);
+        if (btn) {
+            if (t === mode) {
+                btn.className = "py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800 text-blue-600 shadow-sm border border-blue-500 cursor-pointer";
+            } else {
+                btn.className = "py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 cursor-pointer border border-transparent";
+            }
+        }
+    });
 
+    const themeLabel = document.getElementById('current-theme-label');
+    if (themeLabel) {
+        themeLabel.textContent = mode.toUpperCase();
+    }
+};
+
+function initThemeManager() {
+    const savedPref = localStorage.getItem('fmc_bd_theme_preference') || localStorage.getItem('fmc_bd_theme') || 'light';
+    window.setAppTheme(savedPref);
+
+    const themeBtn = document.getElementById('theme-toggle-btn');
     if (themeBtn) {
         themeBtn.addEventListener('click', () => {
             const current = document.documentElement.getAttribute('data-theme') || 'light';
             const target = current === 'light' ? 'dark' : 'light';
-            applyTheme(target);
+            window.setAppTheme(target);
         });
     }
 
-    function applyTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('fmc_bd_theme', theme);
+    // System mode live watcher
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            const pref = localStorage.getItem('fmc_bd_theme_preference');
+            if (pref === 'system') {
+                window.setAppTheme('system');
+            }
+        });
+    }
 
-        if (theme === 'dark') {
-            if (sunIcon) sunIcon.style.display = 'none';
-            if (moonIcon) moonIcon.style.display = 'inline-block';
-        } else {
-            if (sunIcon) sunIcon.style.display = 'inline-block';
-            if (moonIcon) moonIcon.style.display = 'none';
-        }
+    // Restore compact mode preference
+    if (localStorage.getItem('fmc_compact_mode') === 'true') {
+        document.body.classList.add('compact-mode');
+        const compactCheckbox = document.getElementById('setting-compact-mode');
+        if (compactCheckbox) compactCheckbox.checked = true;
     }
 }
+
+window.openSettingsModal = function() {
+    const modal = document.getElementById('settings-modal');
+    if (modal) modal.classList.remove('hidden');
+};
+
+window.closeSettingsModal = function() {
+    const modal = document.getElementById('settings-modal');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.toggleCompactMode = function(enabled) {
+    if (enabled) {
+        document.body.classList.add('compact-mode');
+        localStorage.setItem('fmc_compact_mode', 'true');
+    } else {
+        document.body.classList.remove('compact-mode');
+        localStorage.setItem('fmc_compact_mode', 'false');
+    }
+};
 
 /* ==========================================================================
    2. Interactive Leaflet GIS Mapping (Dhaka, Bangladesh)
@@ -514,13 +580,107 @@ function fetchMapMarkersFromDjango() {
         });
 }
 
-window.focusMap = function(lat, lng) {
-    if (!lat || !lng || !mainMap) return;
-    mainMap.flyTo([parseFloat(lat), parseFloat(lng)], 16, { duration: 1.2 });
-    const mapCard = document.getElementById('main-map');
-    if (mapCard) {
-        mapCard.scrollIntoView({ behavior: 'smooth' });
+let highlightCircleMarker = null;
+
+window.openIssueMapModal = function(id, lat, lng, title, address, category, upvotes) {
+    const modal = document.getElementById('issue-map-modal');
+    if (!modal) return;
+
+    modal.classList.remove('hidden');
+
+    const titleEl = document.getElementById('map-modal-title');
+    const addrEl = document.getElementById('map-modal-address');
+    const catEl = document.getElementById('map-modal-category');
+    const coordsEl = document.getElementById('map-modal-coords');
+    const gmapsLink = document.getElementById('map-modal-gmaps-link');
+
+    if (titleEl) titleEl.textContent = title || 'Dhaka Metropolitan Civic Map';
+    if (addrEl) addrEl.textContent = address || 'Dhaka City Corporation Jurisdiction';
+    if (catEl) catEl.textContent = category || 'Civic Defect';
+
+    const hasCoords = lat && lng && !isNaN(parseFloat(lat)) && !isNaN(parseFloat(lng));
+    const targetLat = hasCoords ? parseFloat(lat) : DHAKA_DEFAULT_CENTER[0];
+    const targetLng = hasCoords ? parseFloat(lng) : DHAKA_DEFAULT_CENTER[1];
+
+    if (coordsEl) {
+        coordsEl.textContent = `${targetLat.toFixed(4)}°N, ${targetLng.toFixed(4)}°E`;
     }
+    if (gmapsLink) {
+        gmapsLink.href = `https://www.google.com/maps/dir/?api=1&destination=${targetLat},${targetLng}`;
+    }
+
+    if (!mainMap) {
+        initMainMap();
+        fetchMapMarkersFromDjango();
+    }
+
+    // Aggressive invalidate size to ensure crisp tiles on modal reveal
+    [50, 150, 300].forEach(delay => {
+        setTimeout(() => {
+            if (mainMap) {
+                mainMap.invalidateSize();
+                if (delay === 150) {
+                    if (hasCoords) {
+                        mainMap.flyTo([targetLat, targetLng], 16, { duration: 1.1 });
+                        window.highlightIssuePin(targetLat, targetLng, title, category);
+                    } else {
+                        window.showAllIssuesOnMap();
+                    }
+                }
+            }
+        }, delay);
+    });
+};
+
+window.closeIssueMapModal = function() {
+    const modal = document.getElementById('issue-map-modal');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.highlightIssuePin = function(lat, lng, title, category) {
+    if (!mainMap) return;
+    if (highlightCircleMarker) {
+        mainMap.removeLayer(highlightCircleMarker);
+        highlightCircleMarker = null;
+    }
+    const color = (category && CATEGORY_COLORS[category]) ? CATEGORY_COLORS[category] : '#2563eb';
+    highlightCircleMarker = L.circleMarker([lat, lng], {
+        radius: 16,
+        fillColor: color,
+        color: '#ffffff',
+        weight: 3.5,
+        opacity: 1,
+        fillOpacity: 0.85
+    }).addTo(mainMap);
+
+    if (title) {
+        highlightCircleMarker.bindPopup(`
+            <div style="font-family: inherit; padding: 4px 2px;">
+                <div style="font-size: 13px; font-weight: 800; color: #0f172a; line-height: 1.3;">${title}</div>
+                <div style="font-size: 11px; color: ${color}; font-weight: 700; margin-top: 4px;">🏷️ ${category || 'Civic Issue'}</div>
+                <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #f1f5f9;">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" style="font-size: 11px; font-weight: 700; color: #2563eb; text-decoration: none;">🚗 Open Google Maps Directions &rarr;</a>
+                </div>
+            </div>
+        `).openPopup();
+    }
+};
+
+window.showAllIssuesOnMap = function() {
+    if (!mainMap) return;
+    if (markersLayerGroup) {
+        const layers = markersLayerGroup.getLayers();
+        if (layers && layers.length > 0) {
+            const group = L.featureGroup(layers);
+            mainMap.fitBounds(group.getBounds(), { padding: [50, 50], maxZoom: 15 });
+            return;
+        }
+    }
+    mainMap.setView(DHAKA_DEFAULT_CENTER, 12);
+};
+
+window.focusMap = function(lat, lng) {
+    window.openIssueMapModal(null, lat, lng, 'Civic Defect Pinpoint', '', '', '');
 };
 
 /* ==========================================================================
@@ -715,3 +875,25 @@ window.handleUpvote = function(issueId, btnElement) {
     })
     .catch(err => console.error('Upvote error:', err));
 };
+
+/* ==========================================================================
+   7. Global Modal Keyboard & Backdrop Click Dismissal
+   ========================================================================== */
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (typeof closeSettingsModal === 'function') closeSettingsModal();
+        if (typeof closeIssueMapModal === 'function') closeIssueMapModal();
+        if (typeof closeReportModal === 'function') closeReportModal();
+        if (typeof closeCampaignModal === 'function') closeCampaignModal();
+    }
+});
+
+// Click outside modal content to dismiss
+document.addEventListener('click', (e) => {
+    ['settings-modal', 'issue-map-modal', 'report-modal', 'campaign-modal'].forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (modal && !modal.classList.contains('hidden') && e.target === modal) {
+            modal.classList.add('hidden');
+        }
+    });
+});

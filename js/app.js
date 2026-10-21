@@ -216,8 +216,11 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', () => {
                 const lat = parseFloat(btn.getAttribute('data-lat'));
                 const lng = parseFloat(btn.getAttribute('data-lng'));
-                mainMap.flyTo([lat, lng], 16, { duration: 1.2 });
-                document.querySelector('.map-card-neo').scrollIntoView({ behavior: 'smooth' });
+                if (typeof window.openIssueMapModal === 'function') {
+                    window.openIssueMapModal(null, lat, lng, 'Civic Defect Pinpoint', '', '', '');
+                } else if (mainMap) {
+                    mainMap.flyTo([lat, lng], 16, { duration: 1.2 });
+                }
             });
         });
     }

@@ -39,7 +39,8 @@
     border: 1px solid #e2e8f0 !important;
 }
 
-.dark .leaflet-popup-content-wrapper, .dark .leaflet-popup-tip {
+.dark .leaflet-popup-content-wrapper, .dark .leaflet-popup-tip,
+[data-theme="dark"] .leaflet-popup-content-wrapper, [data-theme="dark"] .leaflet-popup-tip {
     background: #1e293b !important;
     color: #f8fafc !important;
     border-color: #334155 !important;
@@ -60,16 +61,70 @@
     border-radius: 9999px;
 }
 
-.dark ::-webkit-scrollbar-thumb {
-    background: #334155;
+.dark ::-webkit-scrollbar-thumb,
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: #374151;
 }
 
-/* Modal Transition */
+/* Modal Transition & Backdrop */
 .modal-overlay {
-    transition: opacity 0.2s ease-in-out;
+    transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), backdrop-filter 0.2s ease;
 }
 
 .modal-overlay.hidden {
     opacity: 0;
     pointer-events: none;
+}
+
+/* ==========================================================================
+   Twitter / X Civic Timeline Enhancements
+   ========================================================================== */
+article {
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+article:hover {
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+}
+
+/* Compact Mode */
+body.compact-mode article {
+    padding: 0.75rem 1rem !important;
+    gap: 0.75rem !important;
+}
+
+body.compact-mode article img {
+    max-height: 160px !important;
+}
+
+body.compact-mode article p {
+    font-size: 12.5px !important;
+    line-height: 1.4 !important;
+}
+
+/* Upvote Button Micro-Pop Animation */
+@keyframes upvotePop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.25); }
+    100% { transform: scale(1); }
+}
+
+.upvote-pop {
+    animation: upvotePop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Modal Animation */
+@keyframes modalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-overlay:not(.hidden) > div {
+    animation: modalSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

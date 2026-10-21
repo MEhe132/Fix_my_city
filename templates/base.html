@@ -26,29 +26,51 @@
         .font-mono-code {
             font-family: 'JetBrains Mono', monospace;
         }
-        [data-theme="dark"] {
+        [data-theme="dark"], html.dark {
             color-scheme: dark;
         }
-        [data-theme="dark"] .bg-white {
-            background-color: #0f172a !important;
+        [data-theme="dark"] body, html.dark body {
+            background-color: #0b0f19 !important;
+            color: #f1f5f9 !important;
         }
-        [data-theme="dark"] .bg-slate-50 {
-            background-color: #020617 !important;
+        [data-theme="dark"] .bg-white, html.dark .bg-white {
+            background-color: #111827 !important;
         }
-        [data-theme="dark"] .border-slate-200 {
-            border-color: #1e293b !important;
+        [data-theme="dark"] .bg-slate-50, html.dark .bg-slate-50 {
+            background-color: #0b0f19 !important;
         }
-        [data-theme="dark"] .text-slate-900 {
-            color: #f8fafc !important;
+        [data-theme="dark"] .border-slate-200, html.dark .border-slate-200 {
+            border-color: #1f2937 !important;
         }
-        [data-theme="dark"] .text-slate-700 {
-            color: #cbd5e1 !important;
+        [data-theme="dark"] .border-slate-100, html.dark .border-slate-100 {
+            border-color: #1f2937 !important;
         }
-        [data-theme="dark"] .text-slate-600 {
-            color: #94a3b8 !important;
+        [data-theme="dark"] .text-slate-900, html.dark .text-slate-900 {
+            color: #f9fafb !important;
         }
-        [data-theme="dark"] .bg-slate-100 {
-            background-color: #1e293b !important;
+        [data-theme="dark"] .text-slate-800, html.dark .text-slate-800 {
+            color: #f3f4f6 !important;
+        }
+        [data-theme="dark"] .text-slate-700, html.dark .text-slate-700 {
+            color: #e5e7eb !important;
+        }
+        [data-theme="dark"] .text-slate-600, html.dark .text-slate-600 {
+            color: #9ca3af !important;
+        }
+        [data-theme="dark"] .text-slate-500, html.dark .text-slate-500 {
+            color: #9ca3af !important;
+        }
+        [data-theme="dark"] .bg-slate-100, html.dark .bg-slate-100 {
+            background-color: #1f2937 !important;
+        }
+        [data-theme="dark"] .bg-slate-200, html.dark .bg-slate-200 {
+            background-color: #374151 !important;
+        }
+        [data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea,
+        html.dark input, html.dark select, html.dark textarea {
+            background-color: #1f2937 !important;
+            color: #f9fafb !important;
+            border-color: #374151 !important;
         }
     </style>
     {% block extra_css %}{% endblock %}
@@ -61,9 +83,16 @@
         <!-- Universal Modern Header & Navigation -->
         <nav class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4 transition-colors">
             
-            <!-- Logo & Brand Badge -->
-            <div class="flex items-center gap-3">
-                <a href="{% url 'index' %}" class="flex items-center gap-3 group">
+            <!-- Left Top Corner: Gear Settings Icon & Logo -->
+            <div class="flex items-center gap-2.5 sm:gap-3 w-full md:w-auto justify-between md:justify-start">
+                <button type="button" id="gear-settings-btn" onclick="openSettingsModal()" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-blue-600 transition cursor-pointer shadow-xs group" title="System Settings & Preferences (Dark/Light mode, GIS map, persona)" aria-label="Settings">
+                    <svg class="w-5 h-5 text-slate-700 dark:text-slate-200 group-hover:rotate-90 transition duration-300 transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                </button>
+
+                <a href="{% url 'index' %}" class="flex items-center gap-2.5 sm:gap-3 group">
                     <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-105 transition transform">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
@@ -83,8 +112,8 @@
             <!-- Main Navigation Links -->
             <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
                 <a href="{% url 'index' %}" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 {% if request.resolver_match.url_name == 'index' %}bg-blue-50 text-blue-700 border border-blue-200{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
-                    Live Map & Feed
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
+                    Civic Feed
                 </a>
                 
                 <a href="{% url 'accountability_board' %}" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 {% if request.resolver_match.url_name == 'accountability_board' %}bg-blue-50 text-blue-700 border border-blue-200{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
@@ -94,7 +123,7 @@
 
                 <a href="{% url 'authority_dashboard' %}" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 {% if request.resolver_match.url_name == 'authority_dashboard' %}bg-purple-50 text-purple-700 border border-purple-200{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    Municipal Authority Console
+                    Municipal Console
                 </a>
             </div>
 
@@ -113,7 +142,7 @@
                             👤 Citizen
                         </span>
                         <a href="{% url 'quick_demo_role' role='official' %}" class="px-2.5 py-1 text-slate-500 hover:text-purple-700 font-semibold rounded-lg transition flex items-center gap-1" title="Switch to Municipal Official Persona">
-                            🛡️ Switch to Official
+                            🛡️ Official
                         </a>
                     {% endif %}
                 </div>
@@ -159,6 +188,106 @@
             </div>
         </footer>
 
+    </div>
+
+    <!-- Settings & Preferences Modal (Triggered by Top-Left Gear Icon) -->
+    <div id="settings-modal" class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50 hidden transition-opacity duration-200">
+        <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative space-y-5 animate-in fade-in zoom-in-95">
+            
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900">Settings & Preferences</h3>
+                        <p class="text-[11px] text-slate-500">Configure theme, mapping, role & civic feed</p>
+                    </div>
+                </div>
+                <button onclick="closeSettingsModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer text-lg font-bold">&times;</button>
+            </div>
+
+            <!-- 1. Dark & Light Mode Injector -->
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-slate-700 flex justify-between items-center">
+                    <span>Appearance & Color Theme</span>
+                    <span id="current-theme-label" class="text-[11px] text-blue-600 font-semibold uppercase">Light</span>
+                </label>
+                <div class="grid grid-cols-3 gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                    <button type="button" onclick="setAppTheme('light')" id="theme-btn-light" class="py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white text-slate-900 shadow-xs cursor-pointer">
+                        <svg class="w-4 h-4 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                        <span>Light</span>
+                    </button>
+                    <button type="button" onclick="setAppTheme('dark')" id="theme-btn-dark" class="py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900 cursor-pointer">
+                        <svg class="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                        <span>Dark</span>
+                    </button>
+                    <button type="button" onclick="setAppTheme('system')" id="theme-btn-system" class="py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900 cursor-pointer">
+                        <svg class="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        <span>System</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. GIS Mapping Preferences -->
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-slate-700">Default GIS Map Provider</label>
+                <select id="setting-map-layer" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer" onchange="switchMapLayer(this.value)">
+                    <option value="streets">🏙️ Esri World Streets (High-Speed Akamai CDN)</option>
+                    <option value="voyager">🗺️ CARTO Voyager (Clean Civic Vector)</option>
+                    <option value="satellite">🛰️ Satellite High-Resolution Imagery</option>
+                    <option value="hot">🌍 Humanitarian OpenStreetMap (OSM)</option>
+                    <option value="dark">🌙 Carto Dark Theme</option>
+                </select>
+                <button type="button" onclick="closeSettingsModal(); openIssueMapModal(null, 23.8103, 90.4125, 'Dhaka City GIS Overview', 'Dhaka Metropolitan Jurisdiction', 'All Issues', 0);" class="w-full py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span>🗺️ Open Interactive City GIS Map</span>
+                </button>
+            </div>
+
+            <!-- 3. Demo Persona Switcher -->
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-slate-700">Active Persona (For Academic Grading)</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <a href="{% url 'quick_demo_role' role='citizen' %}" class="py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition {% if not user.is_authenticated or user.role != 'OFFICIAL' %}bg-blue-600 text-white border-blue-600 shadow-sm{% else %}bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100{% endif %}">
+                        <span>👤 Citizen</span>
+                    </a>
+                    <a href="{% url 'quick_demo_role' role='official' %}" class="py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition {% if user.is_authenticated and user.role == 'OFFICIAL' %}bg-purple-600 text-white border-purple-600 shadow-sm{% else %}bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100{% endif %}">
+                        <span>🛡️ Ward 19 Official</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 4. Timeline Density & Feed Options -->
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-slate-700">Timeline Preferences</label>
+                <div class="space-y-2">
+                    <label class="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs cursor-pointer hover:bg-slate-100 transition">
+                        <span class="font-semibold text-slate-700">Compact Tweet Mode</span>
+                        <input type="checkbox" id="setting-compact-mode" onchange="toggleCompactMode(this.checked)" class="rounded text-blue-600 focus:ring-blue-500 h-4 w-4">
+                    </label>
+                    <label class="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs cursor-pointer hover:bg-slate-100 transition">
+                        <span class="font-semibold text-slate-700">Real-Time Ward Alerts</span>
+                        <input type="checkbox" id="setting-live-alerts" checked class="rounded text-blue-600 focus:ring-blue-500 h-4 w-4">
+                    </label>
+                </div>
+            </div>
+
+            <!-- 5. Bangladesh Statutory RTI Act Reference -->
+            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-[11px] text-slate-600">
+                <div class="font-bold text-slate-800 flex items-center gap-1 mb-1">
+                    <span>⚖️ Statutory Escalation Framework</span>
+                </div>
+                <div>Under the Bangladesh Local Government (City Corporation) Act 2009 & RTI framework, civic reports with 10+ citizen endorsements are dispatched directly to the Ward Councillor.</div>
+            </div>
+
+            <!-- Done Button -->
+            <div class="pt-1">
+                <button type="button" onclick="closeSettingsModal()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold rounded-xl transition shadow cursor-pointer">
+                    Done
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Local Offline Libraries -->

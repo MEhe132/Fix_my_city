@@ -2,222 +2,409 @@
 {% load static %}
 
 {% block content %}
-<!-- Top Metrics & Ward Filter Bar -->
+<!-- Top Controls Bar: Ward Jurisdiction, Search & Category Tabs (Twitter Style) -->
 <section class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4 transition-colors">
     
-    <!-- Aggregate Civic KPIs -->
-    <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
-        <div class="px-3 py-1.5 bg-slate-100 rounded-xl border border-slate-200 text-xs font-semibold flex items-center gap-1.5">
-            <span class="text-slate-500">Total Reports:</span>
-            <span id="stat-total" class="font-bold text-blue-600">{{ stats.total }}</span>
-        </div>
-        <div class="px-3 py-1.5 bg-amber-50 rounded-xl border border-amber-200 text-xs font-semibold flex items-center gap-1.5 text-amber-800">
-            <span>In Progress:</span>
-            <span id="stat-progress" class="font-bold text-amber-600">{{ stats.in_progress }}</span>
-        </div>
-        <div class="px-3 py-1.5 bg-emerald-50 rounded-xl border border-emerald-200 text-xs font-semibold flex items-center gap-1.5 text-emerald-800">
-            <span>Resolved:</span>
-            <span id="stat-resolved" class="font-bold text-emerald-600">{{ stats.resolved }}</span>
-        </div>
-        <div class="px-3 py-1.5 bg-blue-50 rounded-xl border border-blue-200 text-xs font-semibold flex items-center gap-1.5 text-blue-800">
-            <span>Resolution Rate:</span>
-            <span class="font-extrabold text-blue-600">{{ stats.rate }}%</span>
-        </div>
-    </div>
-
-    <!-- Ward Filter & Search -->
-    <form method="GET" action="{% url 'index' %}" class="flex items-center gap-2 w-full md:w-auto">
+    <!-- Left: Ward Filter & Search Pills -->
+    <form method="GET" action="{% url 'index' %}" class="flex items-center gap-2 w-full md:w-auto flex-1 max-w-xl">
         {% if selected_category != 'all' %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
         
         <!-- Ward Dropdown -->
-        <select name="ward" class="px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 transition cursor-pointer" onchange="this.form.submit()">
+        <select name="ward" class="px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-full text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 transition cursor-pointer" onchange="this.form.submit()">
             <option value="all" {% if selected_ward == 'all' %}selected{% endif %}>🏛️ All Dhaka Wards (DNCC & DSCC)</option>
             {% for w in wards %}
                 <option value="{{ w.id }}" {% if selected_ward == w.id|stringformat:"s" %}selected{% endif %}>
-                    {{ w.ward_number }} - {{ w.name }} ({{ w.city_corporation|slice:":4" }})
+                    Ward {{ w.ward_number }} - {{ w.name }} ({{ w.city_corporation|slice:":4" }})
                 </option>
             {% endfor %}
         </select>
 
-        <!-- Search Input -->
-        <div class="relative flex-1 md:w-56">
-            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <!-- Search Input (Twitter Style Rounded Pill) -->
+        <div class="relative flex-1">
+            <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
             </svg>
-            <input type="text" name="search" class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition" placeholder="Search road, pothole, ward..." value="{{ search_query }}">
+            <input type="text" name="search" class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-full text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition" placeholder="Search roads, potholes, wards..." value="{{ search_query }}">
         </div>
-        <button type="submit" class="px-3 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition">Go</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-full text-xs font-bold hover:bg-blue-700 transition">Go</button>
+    </form>
+
+    <!-- Right: Quick Open City Map Trigger & Report CTA -->
+    <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+        <button type="button" onclick="openIssueMapModal(null, 23.8103, 90.4125, 'Dhaka City GIS Overview', 'Dhaka Metropolitan Area', 'All Issues', 0)" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 rounded-full text-xs font-bold transition flex items-center gap-1.5 cursor-pointer" title="View Full City Interactive GIS Map">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+            <span>City Map</span>
+        </button>
+
+        <button onclick="openReportModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold rounded-full shadow transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer active:scale-95">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Report Defect</span>
+        </button>
+    </div>
+</section>
+
+<!-- Category Filtering Tabs (Twitter Timeline Style) -->
+<section class="bg-white border border-slate-200 rounded-2xl p-2 sm:p-2.5 shadow-sm flex items-center justify-between gap-2 overflow-x-auto transition-colors">
+    <div class="flex items-center gap-1 sm:gap-1.5">
+        <a href="?category=all{% if selected_ward != 'all' %}&ward={{ selected_ward }}{% endif %}" class="px-3 py-1.5 rounded-full text-xs font-bold transition {% if selected_category == 'all' %}bg-blue-600 text-white shadow-xs{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+            All Feed
+        </a>
+        <a href="?category=Pothole{% if selected_ward != 'all' %}&ward={{ selected_ward }}{% endif %}" class="px-3 py-1.5 rounded-full text-xs font-bold transition {% if selected_category == 'Pothole' %}bg-red-600 text-white shadow-xs{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+            🚧 Potholes
+        </a>
+        <a href="?category=Streetlight{% if selected_ward != 'all' %}&ward={{ selected_ward }}{% endif %}" class="px-3 py-1.5 rounded-full text-xs font-bold transition {% if selected_category == 'Streetlight' %}bg-amber-600 text-white shadow-xs{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+            💡 Streetlights
+        </a>
+        <a href="?category=Water Leak{% if selected_ward != 'all' %}&ward={{ selected_ward }}{% endif %}" class="px-3 py-1.5 rounded-full text-xs font-bold transition {% if selected_category == 'Water Leak' %}bg-blue-600 text-white shadow-xs{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+            🚰 WASA Leaks
+        </a>
+        <a href="?category=Waterlogging{% if selected_ward != 'all' %}&ward={{ selected_ward }}{% endif %}" class="px-3 py-1.5 rounded-full text-xs font-bold transition {% if selected_category == 'Waterlogging' %}bg-cyan-600 text-white shadow-xs{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+            🌊 Flooding
+        </a>
+        <a href="?category=Sanitation{% if selected_ward != 'all' %}&ward={{ selected_ward }}{% endif %}" class="px-3 py-1.5 rounded-full text-xs font-bold transition {% if selected_category == 'Sanitation' %}bg-emerald-600 text-white shadow-xs{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+            🗑️ Waste
+        </a>
+    </div>
+
+    <!-- Feed Sort Dropdown -->
+    <form method="GET" id="sort-form" class="flex-shrink-0">
+        {% if selected_category != 'all' %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+        {% if selected_ward != 'all' %}<input type="hidden" name="ward" value="{{ selected_ward }}">{% endif %}
+        {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
+        <select name="sort" class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer" onchange="this.form.submit()">
+            <option value="upvotes" {% if sort_by == 'upvotes' %}selected{% endif %}>🔥 Most Upvoted</option>
+            <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>⏱️ Newest</option>
+            <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>⌛ Oldest</option>
+        </select>
     </form>
 </section>
 
-<!-- Category Filtering Bar -->
-<section class="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm flex items-center justify-between gap-3 overflow-x-auto transition-colors">
-    <div class="flex items-center gap-2">
-        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1">Category:</span>
-        <a href="?category=all{% if selected_ward != 'all' %}&ward={{ selected_ward }}{% endif %}" class="px-3 py-1 rounded-xl text-xs font-bold transition border {% if selected_category == 'all' %}bg-blue-600 text-white border-blue-600{% else %}bg-slate-100 text-slate-600 border-slate-200 hover:border-blue-500{% endif %}">All</a>
-        <a href="?category=Pothole{% if selected_ward != 'all' %}&ward={{ selected_ward }}{% endif %}" class="px-3 py-1 rounded-xl text-xs font-bold transition border {% if selected_category == 'Pothole' %}bg-red-600 text-white border-red-600{% else %}bg-slate-100 text-slate-600 border-slate-200 hover:border-red-500{% endif %}">🚧 Potholes</a>
-        <a href="?category=Streetlight{% if selected_ward != 'all' %}&ward={{ selected_ward }}{% endif %}" class="px-3 py-1 rounded-xl text-xs font-bold transition border {% if selected_category == 'Streetlight' %}bg-amber-600 text-white border-amber-600{% else %}bg-slate-100 text-slate-600 border-slate-200 hover:border-amber-500{% endif %}">💡 Streetlights</a>
-        <a href="?category=Water Leak{% if selected_ward != 'all' %}&ward={{ selected_ward }}{% endif %}" class="px-3 py-1 rounded-xl text-xs font-bold transition border {% if selected_category == 'Water Leak' %}bg-blue-600 text-white border-blue-600{% else %}bg-slate-100 text-slate-600 border-slate-200 hover:border-blue-500{% endif %}">🚰 WASA Pipeline</a>
-        <a href="?category=Waterlogging{% if selected_ward != 'all' %}&ward={{ selected_ward }}{% endif %}" class="px-3 py-1 rounded-xl text-xs font-bold transition border {% if selected_category == 'Waterlogging' %}bg-cyan-600 text-white border-cyan-600{% else %}bg-slate-100 text-slate-600 border-slate-200 hover:border-cyan-500{% endif %}">🌊 Drainage & Flooding</a>
-        <a href="?category=Sanitation{% if selected_ward != 'all' %}&ward={{ selected_ward }}{% endif %}" class="px-3 py-1 rounded-xl text-xs font-bold transition border {% if selected_category == 'Sanitation' %}bg-emerald-600 text-white border-emerald-600{% else %}bg-slate-100 text-slate-600 border-slate-200 hover:border-emerald-500{% endif %}">🗑️ Waste Dump</a>
-    </div>
-
-    <!-- Quick Report Trigger Button -->
-    <button onclick="openReportModal()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        Report Issue
-    </button>
-</section>
-
-<!-- Main Workspace (Map + Issue Feed) -->
-<main class="grid grid-cols-1 lg:grid-cols-12 gap-5 min-h-[620px]">
+<!-- Main Workspace: Smooth Twitter Timeline Stream + Civic Radar Sidebar -->
+<main class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
     
-    <!-- Interactive Leaflet Map (Left Column) -->
-    <section class="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-3 shadow-sm flex flex-col min-h-[460px] transition-colors relative">
-        <div class="flex flex-wrap justify-between items-center px-2 py-1 mb-2 gap-2">
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span class="text-xs font-bold text-slate-800">GIS Civic Map (Dhaka)</span>
-                
-                <!-- Map Layer Switcher Toolbar -->
-                <div class="hidden sm:flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-[10px]">
-                    <button type="button" onclick="switchMapLayer('streets')" id="btn-layer-streets" class="px-2 py-0.5 rounded-md bg-white text-blue-700 shadow-xs font-bold" title="High-Speed Akamai CDN (Zero API Key)">🏙️ Esri Streets</button>
-                    <button type="button" onclick="switchMapLayer('voyager')" id="btn-layer-voyager" class="px-2 py-0.5 rounded-md text-slate-600 hover:text-slate-900 font-medium" title="Clean Vector Map (Cloudflare CDN)">🗺️ Carto</button>
-                    <button type="button" onclick="switchMapLayer('hot')" id="btn-layer-hot" class="px-2 py-0.5 rounded-md text-slate-600 hover:text-slate-900 font-medium" title="Humanitarian OpenStreetMap Public Tiles">🌍 OSM</button>
-                    <button type="button" onclick="switchMapLayer('satellite')" id="btn-layer-satellite" class="px-2 py-0.5 rounded-md text-slate-600 hover:text-slate-900 font-medium" title="Satellite Imagery">🛰️ Satellite</button>
-                    <button type="button" onclick="switchMapLayer('dark')" id="btn-layer-dark" class="px-2 py-0.5 rounded-md text-slate-600 hover:text-slate-900 font-medium" title="Dark Mode Theme">🌙 Dark</button>
-                    <button type="button" onclick="openMapApiKeyModal()" id="btn-layer-custom" class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 hover:bg-amber-100 font-bold border border-amber-200" title="Optional: Enter Free Mapbox or Stadia API Key">🔑 Free API Key</button>
+    <!-- Central Timeline Feed Column (Styled like Twitter / X timeline) -->
+    <section class="lg:col-span-8 flex flex-col gap-4">
+        
+        <!-- Twitter Compose / Quick Civic Report Card -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm transition hover:border-slate-300">
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-sm flex-shrink-0">
+                    {% if user.is_authenticated and user.first_name %}{{ user.first_name|first|upper }}{% else %}DH{% endif %}
+                </div>
+                <div class="flex-1">
+                    <div onclick="openReportModal()" class="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl text-slate-500 text-xs font-medium cursor-pointer transition flex items-center justify-between">
+                        <span>Report a civic issue in your ward (pothole, dark street, leak)...</span>
+                        <span class="text-blue-600 font-bold text-[11px] flex items-center gap-1">📸 Camera EXIF</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between pt-3 mt-2 border-t border-slate-100">
+                        <div class="flex items-center gap-1 sm:gap-2">
+                            <button type="button" onclick="openReportModal()" class="px-2.5 py-1.5 rounded-xl text-blue-600 hover:bg-blue-50 transition text-xs font-semibold flex items-center gap-1.5 cursor-pointer">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                                <span class="text-[11px]">Photo</span>
+                            </button>
+                            <button type="button" onclick="openReportModal()" class="px-2.5 py-1.5 rounded-xl text-emerald-600 hover:bg-emerald-50 transition text-xs font-semibold flex items-center gap-1.5 cursor-pointer">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                                <span class="text-[11px]">GPS Pin</span>
+                            </button>
+                            <button type="button" onclick="openReportModal()" class="px-2.5 py-1.5 rounded-xl text-amber-600 hover:bg-amber-50 transition text-xs font-semibold flex items-center gap-1.5 cursor-pointer">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                                <span class="text-[11px]">Ward Routing</span>
+                            </button>
+                        </div>
+                        <button type="button" onclick="openReportModal()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-xs font-extrabold shadow-sm transition transform hover:scale-105 active:scale-95 cursor-pointer">
+                            Post Report
+                        </button>
+                    </div>
                 </div>
             </div>
-            
-            <div class="flex items-center gap-2 text-[11px] font-semibold text-slate-500">
-                <button type="button" onclick="locateUserOnMap()" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-[11px] font-bold flex items-center gap-1 transition cursor-pointer shadow-xs" title="Click to ask browser location permission and zoom to your live GPS position">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
-                    <span>🎯 Locate Me</span>
-                </button>
-                <span>Coordinates: <b id="map-live-coords" class="font-mono-code text-blue-600">23.8103°N, 90.4125°E</b></span>
-            </div>
-        </div>
-        <div id="main-map" class="w-full flex-1 rounded-xl border border-slate-200 overflow-hidden z-10 shadow-inner" style="height: 520px; min-height: 500px; width: 100%;"></div>
-    </section>
-
-    <!-- Community Reports Feed (Right Column) -->
-    <section class="lg:col-span-5 flex flex-col gap-3">
-        <div class="flex justify-between items-center px-1">
-            <h2 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                Community Reports
-                <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{{ issues.count }}</span>
-            </h2>
-            <form method="GET" id="sort-form">
-                {% if selected_category != 'all' %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
-                {% if selected_ward != 'all' %}<input type="hidden" name="ward" value="{{ selected_ward }}">{% endif %}
-                {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
-                <select name="sort" class="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer" onchange="this.form.submit()">
-                    <option value="upvotes" {% if sort_by == 'upvotes' %}selected{% endif %}>🔥 Most Upvoted (Escalated)</option>
-                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>⏱️ Newest First</option>
-                    <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>⌛ Oldest First</option>
-                </select>
-            </form>
         </div>
 
-        <!-- Issue Cards Scroll Container -->
-        <div id="issue-feed" class="flex flex-col gap-3.5 overflow-y-auto max-h-[580px] pr-1">
+        <!-- Issue Cards Scroll / Feed Stream -->
+        <div id="issue-feed" class="flex flex-col gap-4">
             {% for issue in issues %}
-            <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:border-blue-500/60 transition flex flex-col gap-2.5 relative">
+            <!-- Twitter-Style Civic Post Card -->
+            <article class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm hover:border-slate-300 transition-all flex gap-3 sm:gap-4 relative group">
                 
-                <!-- Card Header (Ward + Status Badge) -->
-                <div class="flex justify-between items-center gap-2">
-                    <div class="flex items-center gap-2">
-                        <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">
-                            {{ issue.ward.ward_number|default:"Ward Unassigned" }}
+                <!-- Left: Author / Citizen Avatar -->
+                <div class="flex flex-col items-center flex-shrink-0">
+                    <div class="w-11 h-11 rounded-full bg-gradient-to-tr {% if issue.category == 'Pothole' %}from-red-500 to-amber-500{% elif issue.category == 'Streetlight' %}from-amber-400 to-yellow-500{% elif issue.category == 'Water Leak' %}from-blue-500 to-cyan-500{% elif issue.category == 'Sanitation' %}from-emerald-500 to-teal-500{% else %}from-indigo-500 to-purple-500{% endif %} text-white flex items-center justify-center font-bold text-sm shadow-md ring-2 ring-white">
+                        {% if issue.reporter_name %}{{ issue.reporter_name|slice:":2"|upper }}{% else %}DH{% endif %}
+                    </div>
+                </div>
+
+                <!-- Right: Tweet Body & Interaction Row -->
+                <div class="flex-1 min-w-0">
+                    
+                    <!-- Header Row: Author, Verified Check, Handle, Timestamp, Status Pill -->
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="font-extrabold text-[15px] text-slate-900 leading-none hover:underline cursor-pointer">
+                                {{ issue.reporter_name|default:"Dhaka Citizen" }}
+                            </span>
+                            <!-- Twitter Verified Checkmark Badge -->
+                            <svg class="w-4 h-4 text-blue-500 inline-block" viewBox="0 0 24 24" fill="currentColor" title="Verified Civic Reporter">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                            <span class="text-xs text-slate-500 font-medium">@ward{{ issue.ward.ward_number|default:"dhaka" }}</span>
+                            <span class="text-slate-400 text-xs">·</span>
+                            <span class="text-xs text-slate-500 hover:underline cursor-pointer" title="{{ issue.created_at|date:'Y-m-d H:i' }}">
+                                {{ issue.created_at|timesince }} ago
+                            </span>
+                        </div>
+
+                        <!-- Status Pill Badge -->
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider {% if issue.status == 'Resolved' %}bg-emerald-100 text-emerald-800 border border-emerald-300{% elif issue.status == 'In Progress' %}bg-amber-100 text-amber-800 border border-amber-300{% elif issue.status == 'Under Review' %}bg-blue-100 text-blue-800 border border-blue-300{% else %}bg-slate-100 text-slate-700 border border-slate-300{% endif %}">
+                            {{ issue.status }}
                         </span>
-                        <span class="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg">
+                    </div>
+
+                    <!-- Category & Ward Pill Bar -->
+                    <div class="flex items-center gap-2 mt-1 flex-wrap">
+                        <span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
                             {{ issue.category }}
                         </span>
+                        <span class="text-[11px] font-semibold text-slate-500 flex items-center gap-1">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                            {{ issue.address|default:issue.ward.name }} (Ward {{ issue.ward.ward_number }})
+                        </span>
                     </div>
-                    
-                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider {% if issue.status == 'Resolved' %}bg-emerald-100 text-emerald-800 border border-emerald-300{% elif issue.status == 'In Progress' %}bg-amber-100 text-amber-800 border border-amber-300{% elif issue.status == 'Under Review' %}bg-blue-100 text-blue-800 border border-blue-300{% else %}bg-slate-100 text-slate-700 border border-slate-300{% endif %}">
-                        {{ issue.status }}
-                    </span>
-                </div>
 
-                <!-- Title & Location -->
-                <div>
-                    <a href="{% url 'issue_detail' issue.id %}" class="font-extrabold text-sm text-slate-900 hover:text-blue-600 transition leading-snug">
-                        {{ issue.title }}
-                    </a>
-                    <p class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                        {{ issue.address|default:"Location Pinpoint Available" }}
-                    </p>
-                </div>
-
-                <!-- Photographic Evidence Preview -->
-                {% if issue.photo %}
-                <div class="relative group">
-                    <img src="{{ issue.photo.url }}" class="w-full h-36 object-cover rounded-xl border border-slate-200" alt="{{ issue.title }}">
-                    <div class="absolute bottom-2 left-2 bg-slate-900/80 backdrop-blur-sm text-white px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1">
-                        {% if 'Auto-Verified' in issue.verification_status %}
-                            <span class="text-emerald-400">✓ Camera EXIF</span>
-                            {% if issue.camera_model %}<span class="text-slate-300">({{ issue.camera_model }})</span>{% endif %}
-                        {% else %}
-                            <span class="text-blue-300">✓ AI Optical</span>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- Real-World Bangladesh Escalation Banner (10+ Upvotes Milestone) -->
-                {% if issue.upvotes_count >= 10 %}
-                <div class="p-2.5 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-600 rounded-r-xl text-xs text-blue-900">
-                    <div class="font-extrabold flex items-center gap-1.5">
-                        <span>⚡ Tier-3 Civic Escalation Milestone Reached!</span>
-                        <span class="text-[10px] bg-blue-600 text-white px-1.5 py-0.2 rounded font-mono-code">{{ issue.upvotes_count }} Upvotes</span>
-                    </div>
-                    <div class="text-[11px] text-blue-700 mt-0.5">
-                        Statutory memorandum ready for Councillor <b>{{ issue.ward.councillor_name }}</b>.
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- Action Button Toolbar -->
-                <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 mt-1">
-                    
-                    <!-- Upvote Button -->
-                    <button class="px-3 py-1.5 bg-slate-50 border border-slate-200 hover:border-blue-500 rounded-full text-xs font-bold text-blue-700 hover:bg-blue-50 transition flex items-center gap-1.5 cursor-pointer" onclick="handleUpvote('{{ issue.id }}', this)">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
-                            <path d="M12 19V5M5 12l7-7 7 7"/>
-                        </svg>
-                        <span class="upvote-text">{{ issue.upvotes_count }} Upvote{% if issue.upvotes_count != 1 %}s{% endif %}</span>
-                    </button>
-
-                    <div class="flex items-center gap-2">
-                        <!-- 1-Click Social Campaign Button -->
-                        <button class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer" onclick="openCampaignModal('{{ issue.id }}')" title="1-Click Facebook & WhatsApp Campaign">
-                            📢 Share Campaign
-                        </button>
-
-                        <!-- Download Formal PDF Petition -->
-                        <a href="{% url 'download_petition_pdf' issue.id %}" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1" title="Download Official RTI / Municipal Memorandum PDF">
-                            📄 PDF Petition
+                    <!-- Post Headline & Description -->
+                    <div class="mt-2 text-slate-900">
+                        <a href="{% url 'issue_detail' issue.id %}" class="font-extrabold text-[15px] hover:text-blue-600 transition block leading-snug">
+                            {{ issue.title }}
                         </a>
-
-                        <!-- Map Focus -->
-                        <button class="text-xs font-bold text-blue-600 hover:underline cursor-pointer" onclick="focusMap('{{ issue.latitude }}', '{{ issue.longitude }}')">
-                            Map
-                        </button>
+                        <p class="text-[13.5px] text-slate-700 mt-1 leading-relaxed whitespace-pre-line">
+                            {{ issue.description }}
+                        </p>
+                        <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold text-blue-600 flex-wrap">
+                            <span>#FixMyCity</span>
+                            <span>#Ward{{ issue.ward.ward_number }}</span>
+                            <span>#{{ issue.category|cut:" " }}</span>
+                            <span>#{{ issue.ward.city_corporation|default:"Dhaka" }}</span>
+                        </div>
                     </div>
+
+                    <!-- Photographic Evidence (Twitter Media Box) -->
+                    {% if issue.photo %}
+                    <div class="mt-3 relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 group/img">
+                        <img src="{{ issue.photo.url }}" class="w-full max-h-80 object-cover group-hover/img:scale-[1.01] transition duration-300 cursor-pointer" alt="{{ issue.title }}" onclick="window.open('{{ issue.photo.url }}', '_blank')">
+                        <div class="absolute bottom-2.5 left-2.5 bg-slate-900/80 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1.5 shadow-md">
+                            {% if 'Auto-Verified' in issue.verification_status %}
+                                <span class="text-emerald-400 font-extrabold">✓ Camera EXIF Authenticated</span>
+                                {% if issue.camera_model %}<span class="text-slate-300">({{ issue.camera_model }})</span>{% endif %}
+                            {% else %}
+                                <span class="text-blue-300 font-extrabold">✓ AI Optical Authenticated</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Real-World Escalation Milestone Banner (10+ Upvotes) -->
+                    {% if issue.upvotes_count >= 10 %}
+                    <div class="mt-3 p-3 bg-gradient-to-r from-blue-50/80 via-indigo-50/70 to-slate-50 border-l-4 border-blue-600 rounded-r-2xl text-xs text-blue-900 shadow-xs">
+                        <div class="font-extrabold flex items-center gap-2">
+                            <span>⚡ Statutory Escalation Milestone Reached!</span>
+                            <span class="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full font-mono-code font-bold">{{ issue.upvotes_count }} Upvotes</span>
+                        </div>
+                        <div class="text-[11px] text-blue-700 mt-1">
+                            Formal RTI memorandum queued for Councillor <b>{{ issue.ward.councillor_name }}</b> ({{ issue.ward.city_corporation }}).
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Action Button Toolbar: Upvotes, Share Campaign, PDF Petition, Map -->
+                    <div class="flex items-center justify-between gap-1 sm:gap-2 pt-3 mt-3 border-t border-slate-100 flex-wrap">
+                        
+                        <!-- 46 Upvotes Button -->
+                        <button type="button" class="px-3 py-1.5 bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-600 border border-slate-200 hover:border-blue-300 rounded-full text-xs font-bold transition flex items-center gap-1.5 cursor-pointer group/up active:scale-95 shadow-xs" onclick="handleUpvote('{{ issue.id }}', this)">
+                            <svg class="w-4 h-4 text-blue-600 group-hover/up:scale-125 transition transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                                <path d="M12 19V5M5 12l7-7 7 7"/>
+                            </svg>
+                            <span class="upvote-text">{{ issue.upvotes_count }} Upvote{% if issue.upvotes_count != 1 %}s{% endif %}</span>
+                        </button>
+
+                        <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                            <!-- 📢 Share Campaign -->
+                            <button type="button" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-full text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95" onclick="openCampaignModal('{{ issue.id }}')" title="1-Click Facebook & WhatsApp Campaign">
+                                <span>📢</span>
+                                <span>Share Campaign</span>
+                            </button>
+
+                            <!-- [📄 PDF Petition] -->
+                            <a href="{% url 'download_petition_pdf' issue.id %}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 hover:text-slate-900 rounded-full text-xs font-bold transition flex items-center gap-1.5 shadow-xs" title="Download Official RTI / Municipal Memorandum PDF">
+                                <span>📄</span>
+                                <span>PDF Petition</span>
+                            </a>
+
+                            <!-- Map (Click to appear interactive Leaflet GIS Modal) -->
+                            <button type="button" class="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-700 rounded-full text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95" onclick="openIssueMapModal('{{ issue.id }}', '{{ issue.latitude }}', '{{ issue.longitude }}', '{{ issue.title|escapejs }}', '{{ issue.address|default:issue.ward.name|escapejs }}', '{{ issue.category|escapejs }}', '{{ issue.upvotes_count }}')" title="Click to view defect pin on interactive GIS Map">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                                <span>Map</span>
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
-            </div>
+            </article>
             {% empty %}
-            <div class="text-center py-12 px-4 bg-white border border-slate-200 rounded-2xl text-slate-400">
-                <p class="font-bold text-sm">No civic issues match your filter</p>
-                <p class="text-xs mt-1">Try selecting another ward or clearing the category filter.</p>
+            <!-- Clean Empty Timeline State -->
+            <div class="text-center py-16 px-4 bg-white border border-slate-200 rounded-2xl text-slate-400">
+                <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 mx-auto flex items-center justify-center mb-3">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <p class="font-extrabold text-base text-slate-800">No civic reports match your filter</p>
+                <p class="text-xs mt-1 text-slate-500">Try selecting another Dhaka ward or clearing the category filter.</p>
+                <a href="{% url 'index' %}" class="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-full text-xs font-bold shadow hover:bg-blue-700 transition">View All Reports</a>
             </div>
             {% endfor %}
         </div>
     </section>
+
+    <!-- Right Sidebar Column: Civic Radar & Dhaka Pulse (Twitter "What's happening" Style) -->
+    <aside class="hidden lg:flex lg:col-span-4 flex-col gap-4 sticky top-4">
+        
+        <!-- 1. Interactive GIS Map Teaser Card -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Dhaka GIS Civic Radar</h3>
+                </div>
+                <span class="text-[10px] bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-full">Live GIS</span>
+            </div>
+            <p class="text-xs text-slate-500 leading-relaxed">
+                Click any post's <b>Map</b> button or open the full city GIS map to explore spatial hotspots and ward boundaries.
+            </p>
+            <button type="button" onclick="openIssueMapModal(null, 23.8103, 90.4125, 'Dhaka City GIS Overview', 'Dhaka Metropolitan Jurisdiction', 'All Issues', 0)" class="w-full py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow cursor-pointer transform hover:scale-[1.01] active:scale-95">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                <span>🗺️ Open Interactive City Map</span>
+            </button>
+            <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100">
+                <span class="font-mono-code font-bold text-blue-600">23.8103°N, 90.4125°E</span>
+                <button type="button" onclick="locateUserOnMap()" class="text-blue-600 hover:underline font-bold cursor-pointer">🎯 Locate Me</button>
+            </div>
+        </div>
+
+        <!-- 2. City Corporation Aggregated KPIs -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
+            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                <span>📊 Municipal Defect Analytics</span>
+            </h3>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col">
+                    <span class="text-slate-500 text-[11px] font-semibold">Total Reports</span>
+                    <span class="text-base font-extrabold text-blue-600 mt-0.5">{{ stats.total }}</span>
+                </div>
+                <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 flex flex-col">
+                    <span class="text-amber-800 text-[11px] font-semibold">In Progress</span>
+                    <span class="text-base font-extrabold text-amber-600 mt-0.5">{{ stats.in_progress }}</span>
+                </div>
+                <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 flex flex-col">
+                    <span class="text-emerald-800 text-[11px] font-semibold">Resolved</span>
+                    <span class="text-base font-extrabold text-emerald-600 mt-0.5">{{ stats.resolved }}</span>
+                </div>
+                <div class="p-3 bg-blue-50 rounded-xl border border-blue-200 flex flex-col">
+                    <span class="text-blue-800 text-[11px] font-semibold">Resolution Rate</span>
+                    <span class="text-base font-extrabold text-blue-600 mt-0.5">{{ stats.rate }}%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Active Dhaka Wards Leaderboard -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
+            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                <span>🏛️ Active Wards Leaderboard</span>
+            </h3>
+            <div class="flex flex-col gap-2 text-xs">
+                {% for w in wards|slice:":5" %}
+                <a href="?ward={{ w.id }}" class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition border border-transparent hover:border-slate-200">
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-blue-50 text-blue-700 font-extrabold text-[11px] flex items-center justify-center">{{ w.ward_number }}</span>
+                        <div>
+                            <div class="font-bold text-slate-800">{{ w.name }}</div>
+                            <div class="text-[10px] text-slate-500">{{ w.city_corporation }}</div>
+                        </div>
+                    </div>
+                    <span class="text-[11px] text-blue-600 font-bold">&rarr;</span>
+                </a>
+                {% endfor %}
+            </div>
+            <a href="{% url 'accountability_board' %}" class="text-center text-xs font-bold text-blue-600 hover:underline pt-2 border-t border-slate-100">
+                View All Wards Accountability &rarr;
+            </a>
+        </div>
+
+        <!-- 4. Bangladesh Statutory Escalation Notice -->
+        <div class="p-3.5 bg-gradient-to-br from-slate-50 to-blue-50/50 rounded-2xl border border-slate-200 text-[11px] text-slate-600">
+            <div class="font-bold text-slate-800 flex items-center gap-1.5 mb-1">
+                <span>⚡ 10+ Citizen Upvotes Milestone</span>
+            </div>
+            <div>Under the Local Government (City Corporation) Act 2009, petitions that gain 10 or more verified citizen endorsements automatically escalate to the Ward Councillor.</div>
+        </div>
+
+    </aside>
 </main>
+
+<!-- Interactive GIS Civic Map Modal (Appears when 'Map' button is clicked) -->
+<div id="issue-map-modal" class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 z-50 hidden transition-opacity duration-200">
+    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95">
+        
+        <!-- Modal Header -->
+        <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-50/80">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <h3 id="map-modal-title" class="text-sm sm:text-base font-extrabold text-slate-900 leading-snug">Dhaka Civic Infrastructure Defect Map</h3>
+                </div>
+                <p id="map-modal-subtitle" class="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
+                    <span id="map-modal-category" class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-700 text-[10px]">Pothole</span>
+                    <span id="map-modal-address">Mirpur Road, Ward 19</span>
+                </p>
+            </div>
+
+            <!-- Controls: Layer buttons + Directions + Close -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <div class="flex items-center gap-1 bg-slate-200/80 p-0.5 rounded-xl text-[11px] font-bold">
+                    <button type="button" onclick="switchMapLayer('streets')" class="px-2 py-1 rounded-lg bg-white text-blue-700 shadow-xs cursor-pointer">🏙️ Streets</button>
+                    <button type="button" onclick="switchMapLayer('voyager')" class="px-2 py-1 rounded-lg text-slate-700 hover:text-slate-900 cursor-pointer">🗺️ Carto</button>
+                    <button type="button" onclick="switchMapLayer('satellite')" class="px-2 py-1 rounded-lg text-slate-700 hover:text-slate-900 cursor-pointer">🛰️ Satellite</button>
+                </div>
+
+                <a id="map-modal-gmaps-link" href="#" target="_blank" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold flex items-center gap-1 transition" title="Open GPS Coordinates in Google Maps Directions">
+                    <span>🚗 Directions</span>
+                </a>
+
+                <button onclick="closeIssueMapModal()" class="w-8 h-8 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-600 hover:text-slate-900 flex items-center justify-center font-bold text-lg transition cursor-pointer">
+                    &times;
+                </button>
+            </div>
+        </div>
+
+        <!-- Map Container -->
+        <div class="relative flex-1 min-h-[420px] sm:min-h-[480px] w-full bg-slate-100">
+            <div id="main-map" class="w-full h-full" style="height: 480px; min-height: 420px; width: 100%;"></div>
+        </div>
+
+        <!-- Modal Footer Bar -->
+        <div class="p-3 sm:p-4 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-slate-600">
+            <div class="flex items-center gap-2">
+                <span>GPS Pin Coordinates:</span>
+                <span id="map-modal-coords" class="font-mono-code font-bold text-blue-600">23.8103°N, 90.4125°E</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="locateUserOnMap()" class="px-3 py-1 bg-white border border-slate-200 rounded-lg font-bold text-blue-600 hover:bg-blue-50 transition flex items-center gap-1 cursor-pointer">
+                    🎯 Locate Me
+                </button>
+                <button type="button" onclick="showAllIssuesOnMap()" class="px-3 py-1 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition cursor-pointer">
+                    🌍 View All Dhaka Issues
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
 
 <!-- Floating Action Button (FAB) -->
 <button onclick="openReportModal()" class="fixed bottom-6 right-6 px-4 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-xl flex items-center gap-2 transition transform active:scale-95 z-40 cursor-pointer font-bold text-xs">
